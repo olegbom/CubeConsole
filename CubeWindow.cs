@@ -8,7 +8,7 @@ namespace CubeConsole;
 public class CubeWindow:Window
 {
 
-    public int N = 4;
+    public int N = 8;
 
     private byte[,,] Cube;
 
@@ -90,58 +90,35 @@ public class CubeWindow:Window
             switch (args.KeyEvent.Key)
             {
                 case Key.CursorLeft:
-                    if (Selected.x > 0)
-                    {
-                        Selected = _selected with {x = _selected.x - 1};
-                    }
+                    if (Selected.x > 0) Selected = _selected with { x = _selected.x - 1 };
                     args.Handled = true;
                     break;
                 case Key.CursorRight:
-                    if (Selected.x < N - 1)
-                    {
-                        Selected = _selected with { x = _selected.x + 1 };
-                    }
+                    if (Selected.x < N - 1) Selected = _selected with { x = _selected.x + 1 };
                     args.Handled = true;
                     break;
                 case Key.CursorUp:
-                    if (Selected.y > 0)
-                    {
-                        Selected = _selected with { y = _selected.y - 1 };
-                    }
+                    if (Selected.y > 0) Selected = _selected with { y = _selected.y - 1 };
                     args.Handled = true;
                     break;
                 case Key.CursorDown:
-                    if (Selected.y < N - 1)
-                    {
-                        Selected = _selected with { y = _selected.y + 1 };
-                    }
+                    if (Selected.y < N - 1) Selected = _selected with { y = _selected.y + 1 };
                     args.Handled = true;
                     break;
                 case Key.PageDown:
-                    if (Selected.z > 0)
-                    {
-                        Selected = _selected with { z = _selected.z - 1 };
-                    }
+                    if (Selected.z > 0) Selected = _selected with { z = _selected.z - 1 };
                     args.Handled = true;
                     break;
                 case Key.PageUp:
-                    if (Selected.z < N - 1)
-                    {
-                        Selected = _selected with { z = _selected.z + 1 };
-                    }
+                    if (Selected.z < N - 1) Selected = _selected with { z = _selected.z + 1 };
                     args.Handled = true;
                     break;
-                case Key.D1:
-                    SetValueToSelectedCell(1);
-                    break;
-                case Key.D2:
-                    SetValueToSelectedCell(2);
-                    break;
-                case Key.D3:
-                    SetValueToSelectedCell(3);
-                    break;
-                case Key.D4:
-                    SetValueToSelectedCell(4);
+                default:
+                    if (args.KeyEvent.KeyValue is >= (int)Key.D1 and <= (int)Key.D8)
+                    {
+                        SetValueToSelectedCell((byte)(args.KeyEvent.KeyValue - (int)Key.D1 + 1));
+                        args.Handled = true;
+                    }
                     break;
             }
         };

@@ -21,8 +21,8 @@ public class FrontSliceView
     {
         Panel = new FrameView()
         {
-            Width = 2 + n*2 - 1,
-            Height = 2 + n,
+            Width = 2 + n*3 - 1,
+            Height = 2 + n*2,
             
             Border = new Border()
             {
@@ -45,8 +45,8 @@ public class FrontSliceView
             {
                 _labels[i,j] = new Label()
                 {
-                    X = i * 2,
-                    Y = j,
+                    X = i * 3,
+                    Y = j * 2,
                     Text = "a",
                 };
                 Panel.Add(_labels[i,j]);
@@ -70,7 +70,7 @@ public class FrontSliceView
                 {
                     for (int j = 0; j < N; j++)
                     {
-                        _labels[i, j].Text = $"{cube[i, j, slice]} ";
+                        _labels[i, j].Text = $"{cube[i, j, slice]}";
                     }
                 }
                 break;
@@ -79,7 +79,7 @@ public class FrontSliceView
                 {
                     for (int j = 0; j < N; j++)
                     {
-                        _labels[i, j].Text = $"{cube[i, slice, N - j - 1]} ";
+                        _labels[i, j].Text = $"{cube[i, slice, N - j - 1]}";
                     }
                 }
                 break;
@@ -88,7 +88,7 @@ public class FrontSliceView
                 {
                     for (int j = 0; j < N; j++)
                     {
-                        _labels[i, j].Text = $"{cube[slice, j, N - i - 1]} ";
+                        _labels[i, j].Text = $"{cube[slice, j, N - i - 1]}";
                     }
                 }
                 break;
