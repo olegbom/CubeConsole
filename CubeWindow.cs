@@ -12,11 +12,11 @@ public class CubeWindow:Window
 
     private byte[,,] Cube;
 
-    private readonly FrontSliceView _frontSlice;
+    private readonly SliceView _frontSlice;
 
-    private readonly FrontSliceView _topSlice;
+    private readonly SliceView _topSlice;
 
-    private readonly FrontSliceView _leftSlice;
+    private readonly SliceView _leftSlice;
 
     
 
@@ -36,13 +36,13 @@ public class CubeWindow:Window
     public void OnSelectedChange()
     {
         _frontSlice.SetSlice(Cube, _selected.z, SliceDirection.Front);
-        _frontSlice.Panel.Border.Title = $"{_selected.z + 1} Front";
+        //_frontSlice.Border.Title = $"{_selected.z + 1} Front";
         _frontSlice.SetCross(_selected.x, _selected.y);
         _topSlice.SetSlice(Cube, _selected.y, SliceDirection.Top);
-        _topSlice.Panel.Border.Title = $"{_selected.y + 1} Top";
+        //_topSlice.Border.Title = $"{_selected.y + 1} Top";
         _topSlice.SetCross(_selected.x, N - _selected.z - 1);
         _leftSlice.SetSlice(Cube, _selected.x, SliceDirection.Left);
-        _leftSlice.Panel.Border.Title = $"{_selected.x + 1} Left";
+       // _leftSlice.Border.Title = $"{_selected.x + 1} Left";
         _leftSlice.SetCross(N - _selected.z - 1, _selected.y);
         _frontSlice.SetCursor(_selected.x, _selected.y);
     }
@@ -66,23 +66,23 @@ public class CubeWindow:Window
         }
 
 
-        _frontSlice = new FrontSliceView(N, "Front");
-        _frontSlice.Panel.X = 2;
-        _frontSlice.Panel.Y = 1;
+        _frontSlice = new SliceView(N, "Front");
+        _frontSlice.X = 2;
+        _frontSlice.Y = 1;
         _frontSlice.SetSlice(Cube, 0, SliceDirection.Front);
-        Add(_frontSlice.Panel);
+        Add(_frontSlice);
 
-        _topSlice = new FrontSliceView(N, "Top");
-        _topSlice.Panel.X = 2;
-        _topSlice.Panel.Y = Pos.Bottom(_frontSlice.Panel);
+        _topSlice = new SliceView(N, "Top");
+        _topSlice.X = 2;
+        _topSlice.Y = Pos.Bottom(_frontSlice);
         _topSlice.SetSlice(Cube, 0, SliceDirection.Top);
-        Add(_topSlice.Panel);
+        Add(_topSlice);
 
-        _leftSlice = new FrontSliceView(N, "Left");
-        _leftSlice.Panel.X = Pos.Right(_topSlice.Panel) + 1;
-        _leftSlice.Panel.Y = 1;
+        _leftSlice = new SliceView(N, "Left");
+        _leftSlice.X = Pos.Right(_topSlice) + 1;
+        _leftSlice.Y = 1;
         _leftSlice.SetSlice(Cube, 0, SliceDirection.Left);
-        Add(_leftSlice.Panel);
+        Add(_leftSlice);
         OnSelectedChange();
 
         KeyPress += args =>

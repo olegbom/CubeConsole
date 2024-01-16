@@ -1,5 +1,5 @@
-﻿using System.Drawing;
-using Terminal.Gui;
+﻿using Terminal.Gui;
+using Terminal.Gui.Graphs;
 
 namespace CubeConsole;
 
@@ -10,30 +10,19 @@ public enum SliceDirection
     Left,
 }
 
-public class FrontSliceView
+public class SliceView: View
 {
     public readonly int N;
 
+    private readonly LineCanvas _canvas;
     private readonly Label[,] _labels;
-    public readonly FrameView Panel;
 
-    public FrontSliceView(int n, string name)
+    public SliceView(int n, string name)
     {
-        Panel = new FrameView()
-        {
-            Width = 2 + n*3 - 1,
-            Height = 2 + n*2,
-            
-            Border = new Border()
-            {
-                BorderStyle = BorderStyle.Single,
-                DrawMarginFrame = false,
-                BorderThickness = new Thickness(0),
-                Padding = new Thickness(0),
-                Effect3D = false,
-                Title = name,
-            },
-        };
+        Width = 2 + n * 2 - 1;
+        Height = 2 + n + n/2 - 1;
+
+        
 
        
         N = n;
@@ -45,13 +34,23 @@ public class FrontSliceView
             {
                 _labels[i,j] = new Label()
                 {
-                    X = i * 3,
-                    Y = j * 2,
+                    X = 1 + i * 2,
+                    Y = 1 + j  + j/2,
                     Text = "a",
                 };
-                Panel.Add(_labels[i,j]);
+                Add(_labels[i,j]);
             }
         }
+
+        _canvas = new LineCanvas();
+        for (int i = 0; i <= N; i += 2)
+        {
+            _canvas.AddLine(new Point(0, i + i/2), N * 2, Orientation.Horizontal, BorderStyle.Single);
+            _canvas.AddLine(new Point(i * 2, 0), N + N/2, Orientation.Vertical, BorderStyle.Single);
+        }
+
+       
+
     }
 
     public void SetSlice(byte[,,] cube, int slice, SliceDirection dir)
@@ -97,6 +96,17 @@ public class FrontSliceView
         }
     }
 
+    public override void Redraw(Rect bounds)
+    {
+        base.Redraw(bounds);
+    
+        foreach (var p in _canvas.GenerateImage(Bounds))
+        {
+            AddRune(p.Key.X, p.Key.Y, p.Value);
+        }
+    }
+
+
     public void SetCross(int row, int column)
     {
         for (int i = 0; i < N; i++)
@@ -116,6 +126,7 @@ public class FrontSliceView
 
     public void SetCursor(int row, int column)
     {
-        _labels[row, column].ColorScheme = Colors.Error; }
+        _labels[row, column].ColorScheme = Colors.Error;
+    }
 
 }
