@@ -18,6 +18,7 @@ public class CubeWindow:Window
 
     private readonly SliceView _leftSlice;
 
+    private readonly Label _possibilityLabel;
     
 
     private (int x, int y, int z) _selected;
@@ -45,6 +46,7 @@ public class CubeWindow:Window
        // _leftSlice.Border.Title = $"{_selected.x + 1} Left";
         _leftSlice.SetCross(N - _selected.z - 1, _selected.y);
         _frontSlice.SetCursor(_selected.x, _selected.y);
+        _possibilityLabel.Text = LatinCube.ToPossibility(Cube[_selected.x, _selected.y, _selected.z]);
     }
 
 
@@ -60,7 +62,7 @@ public class CubeWindow:Window
             {
                 for (int k = 0; k < N; k++)
                 {
-                    Cube[i, j, k] = (byte)(Random.Shared.Next(N) + 1);
+                    Cube[i, j, k] = 0xFF;
                 }
             }
         }
@@ -83,6 +85,19 @@ public class CubeWindow:Window
         _leftSlice.Y = 1;
         _leftSlice.SetSlice(Cube, 0, SliceDirection.Left);
         Add(_leftSlice);
+
+        _possibilityLabel = new Label()
+        {
+            X = Pos.Right(_topSlice) + 2,
+            Y = Pos.Bottom(_frontSlice) + 1,
+            Width = 8,
+            Border = new Border()
+            {
+                Title = "valid",
+                BorderStyle = BorderStyle.Single,
+            },
+        };
+        Add(_possibilityLabel);
         OnSelectedChange();
 
         KeyPress += args =>
@@ -116,7 +131,7 @@ public class CubeWindow:Window
                 default:
                     if (args.KeyEvent.KeyValue is >= (int)Key.D1 and <= (int)Key.D8)
                     {
-                        SetValueToSelectedCell((byte)(args.KeyEvent.KeyValue - (int)Key.D1 + 1));
+                        SetValueToSelectedCell((byte)(1 << (args.KeyEvent.KeyValue - (int)Key.D1)));
                         args.Handled = true;
                     }
                     break;
@@ -127,6 +142,26 @@ public class CubeWindow:Window
     public void SetValueToSelectedCell(byte value)
     {
         Cube[Selected.x, Selected.y, Selected.z] = value;
+        for (int i = 0; i < N; i++)
+        {
+            if (i != Selected.x)
+            {
+                Cube[i, Selected.y, Selected.z] &= (byte)~value;
+            }
+
+            if (i != Selected.z)
+            {
+                Cube[Selected.x, Selected.y, i] &= (byte)~value;
+            }
+
+            if (i != Selected.y)
+            {
+                Cube[Selected.x, i, Selected.z] &= (byte)~value;
+            }
+        }
+
+        
+
         OnSelectedChange();
     }
 }

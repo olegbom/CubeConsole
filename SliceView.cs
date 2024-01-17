@@ -19,12 +19,9 @@ public class SliceView: View
 
     public SliceView(int n, string name)
     {
-        Width = 2 + n * 2 - 1;
+        Width = 2 + n * 3 - 1;
         Height = 2 + n + n/2 - 1;
-
         
-
-       
         N = n;
         _labels = new Label[n, n];
 
@@ -34,7 +31,7 @@ public class SliceView: View
             {
                 _labels[i,j] = new Label()
                 {
-                    X = 1 + i * 2,
+                    X = 2 + i * 2 + i/2*2,
                     Y = 1 + j  + j/2,
                     Text = "a",
                 };
@@ -45,8 +42,8 @@ public class SliceView: View
         _canvas = new LineCanvas();
         for (int i = 0; i <= N; i += 2)
         {
-            _canvas.AddLine(new Point(0, i + i/2), N * 2, Orientation.Horizontal, BorderStyle.Single);
-            _canvas.AddLine(new Point(i * 2, 0), N + N/2, Orientation.Vertical, BorderStyle.Single);
+            _canvas.AddLine(new Point(0, i + i/2), N * 3, Orientation.Horizontal, BorderStyle.Single);
+            _canvas.AddLine(new Point(i * 2 + i / 2 * 2, 0), N + N/2, Orientation.Vertical, BorderStyle.Single);
         }
 
        
@@ -69,7 +66,7 @@ public class SliceView: View
                 {
                     for (int j = 0; j < N; j++)
                     {
-                        _labels[i, j].Text = $"{cube[i, j, slice]}";
+                        _labels[i, j].Text = LatinCube.ToIndicator(cube[i, j, slice]);
                     }
                 }
                 break;
@@ -78,7 +75,7 @@ public class SliceView: View
                 {
                     for (int j = 0; j < N; j++)
                     {
-                        _labels[i, j].Text = $"{cube[i, slice, N - j - 1]}";
+                        _labels[i, j].Text = LatinCube.ToIndicator(cube[i, slice, N - j - 1]);
                     }
                 }
                 break;
@@ -87,7 +84,7 @@ public class SliceView: View
                 {
                     for (int j = 0; j < N; j++)
                     {
-                        _labels[i, j].Text = $"{cube[slice, j, N - i - 1]}";
+                        _labels[i, j].Text = LatinCube.ToIndicator(cube[slice, j, N - i - 1]);
                     }
                 }
                 break;
@@ -99,7 +96,9 @@ public class SliceView: View
     public override void Redraw(Rect bounds)
     {
         base.Redraw(bounds);
-    
+
+        Driver.SetAttribute(new Terminal.Gui.Attribute(ColorScheme.Normal.Foreground, ColorScheme.Normal.Background));
+
         foreach (var p in _canvas.GenerateImage(Bounds))
         {
             AddRune(p.Key.X, p.Key.Y, p.Value);
