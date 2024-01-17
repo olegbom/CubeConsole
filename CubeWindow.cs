@@ -39,13 +39,16 @@ public class CubeWindow:Window
         _frontSlice.SetSlice(Cube, _selected.z, SliceDirection.Front);
         //_frontSlice.Border.Title = $"{_selected.z + 1} Front";
         _frontSlice.SetCross(_selected.x, _selected.y);
+        _frontSlice.SetCursor(_selected.x, _selected.y);
+
         _topSlice.SetSlice(Cube, _selected.y, SliceDirection.Top);
         //_topSlice.Border.Title = $"{_selected.y + 1} Top";
         _topSlice.SetCross(_selected.x, N - _selected.z - 1);
+        _topSlice.SetCursor(_selected.x, N - _selected.z - 1);
         _leftSlice.SetSlice(Cube, _selected.x, SliceDirection.Left);
-       // _leftSlice.Border.Title = $"{_selected.x + 1} Left";
+        // _leftSlice.Border.Title = $"{_selected.x + 1} Left";
         _leftSlice.SetCross(N - _selected.z - 1, _selected.y);
-        _frontSlice.SetCursor(_selected.x, _selected.y);
+        _leftSlice.SetCursor(N - _selected.z - 1, _selected.y);
         _possibilityLabel.Text = LatinCube.ToPossibility(Cube[_selected.x, _selected.y, _selected.z]);
     }
 
