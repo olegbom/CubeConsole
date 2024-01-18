@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Dynamic;
+using System.Numerics;
 using Terminal.Gui;
 using Terminal.Gui.Trees;
 
@@ -70,6 +71,8 @@ public class CubeWindow:Window
             }
         }
 
+     
+
 
         _frontSlice = new SliceView(N, "Front");
         _frontSlice.X = 2;
@@ -101,6 +104,31 @@ public class CubeWindow:Window
             },
         };
         Add(_possibilityLabel);
+
+
+        Span<int> indicies = stackalloc int[8];
+        for (int i = 0; i < 200; i++)
+        {
+            int x = Random.Shared.Next(8);
+            int y = Random.Shared.Next(8);
+            int z = Random.Shared.Next(8);
+            byte value = Cube[x, y, z];
+            if (BitOperations.PopCount((uint)value) > 1)
+            {
+                int index = 0;
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((value & (1 << j)) > 0)
+                    {
+                        indicies[index] = j;
+                        index++;
+                    }
+                }
+                
+                SetValueToCell((byte)(1 << indicies[Random.Shared.Next(index)]), x, y, z);
+            }
+        }
+
         OnSelectedChange();
 
         KeyPress += args =>
@@ -144,27 +172,40 @@ public class CubeWindow:Window
 
     public void SetValueToSelectedCell(byte value)
     {
-        Cube[Selected.x, Selected.y, Selected.z] = value;
+        var (x, y, z) = (Selected.x, Selected.y, Selected.z);
+        SetValueToCell(value, x, y, z);
+        OnSelectedChange();
+    }
+
+    private void SetValueToCell(byte value, int x, int y, int z)
+    {
+        Cube[x, y, z] = value;
         for (int i = 0; i < N; i++)
         {
-            if (i != Selected.x)
+            if (i != x)
             {
-                Cube[i, Selected.y, Selected.z] &= (byte)~value;
+                Cube[i, y, z] &= (byte)~value;
             }
 
-            if (i != Selected.z)
+            if (i != z)
             {
-                Cube[Selected.x, Selected.y, i] &= (byte)~value;
+                Cube[x, y, i] &= (byte)~value;
             }
 
-            if (i != Selected.y)
+            if (i != y)
             {
-                Cube[Selected.x, i, Selected.z] &= (byte)~value;
+                Cube[x, i, z] &= (byte)~value;
             }
         }
 
-        
-
-        OnSelectedChange();
+        for (int i = x / 2 * 2; i < (x + 2) / 2 * 2; i++)
+        for (int j = y / 2 * 2; j < (y + 2) / 2 * 2; j++)
+        for (int k = z / 2 * 2; k < (z + 2) / 2 * 2; k++)
+        {
+            if (i != x || j != y || k != z)
+            {
+                Cube[i, j, k] &= (byte)~value;
+            }
+        }
     }
 }
