@@ -107,7 +107,7 @@ public class CubeWindow:Window
 
 
         Span<int> indicies = stackalloc int[8];
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 500; i++)
         {
             int x = Random.Shared.Next(8);
             int y = Random.Shared.Next(8);
@@ -184,17 +184,17 @@ public class CubeWindow:Window
         {
             if (i != x)
             {
-                Cube[i, y, z] &= (byte)~value;
-            }
-
-            if (i != z)
-            {
-                Cube[x, y, i] &= (byte)~value;
+                RemoveProbability(value, i, y, z);
             }
 
             if (i != y)
             {
-                Cube[x, i, z] &= (byte)~value;
+                RemoveProbability(value, x, i, z);
+            }
+
+            if (i != z)
+            {
+                RemoveProbability(value, x, y, i);
             }
         }
 
@@ -204,8 +204,21 @@ public class CubeWindow:Window
         {
             if (i != x || j != y || k != z)
             {
-                Cube[i, j, k] &= (byte)~value;
+                RemoveProbability(value, i, j, k);
             }
+        }
+    }
+
+    private void RemoveProbability(byte value, int x, int y, int z)
+    {
+        byte cellValue = Cube[x, y, z];
+        int cnt = BitOperations.PopCount(cellValue);
+        cellValue &= (byte)~value;
+        int newCnt = BitOperations.PopCount(cellValue);
+        Cube[x, y, z] = cellValue;
+        if (cnt == 2 && newCnt == 1)
+        {
+            SetValueToCell(cellValue, x, y, z);
         }
     }
 }
