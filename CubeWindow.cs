@@ -1,15 +1,11 @@
-﻿using System.Drawing;
-using System.Dynamic;
-using System.Numerics;
+﻿using System.Numerics;
 using Terminal.Gui;
-using Terminal.Gui.Trees;
-
 
 namespace CubeConsole;
 public class CubeWindow:Window
 {
 
-    public int N = 8;
+    public readonly int N = 8;
 
     private byte[,,] Cube;
 
@@ -107,7 +103,7 @@ public class CubeWindow:Window
 
 
         Span<int> indicies = stackalloc int[8];
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < 120; i++)
         {
             int x = Random.Shared.Next(8);
             int y = Random.Shared.Next(8);
@@ -125,7 +121,7 @@ public class CubeWindow:Window
                     }
                 }
                 
-                SetValueToCell((byte)(1 << indicies[Random.Shared.Next(index)]), x, y, z);
+                SetValueToCell((byte)(1 << indicies[0]), x, y, z);
             }
         }
 
@@ -205,6 +201,102 @@ public class CubeWindow:Window
             if (i != x || j != y || k != z)
             {
                 RemoveProbability(value, i, j, k);
+            }
+        }
+
+        Span<int> counts = stackalloc int[N]; 
+        
+        for (int i = 0; i < N; i++) ProbCount(i, y, z, counts);
+
+        for (int i = 0; i < N; i++)
+        {
+            if (counts[i] == 1)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    if ((Cube[j, y, z] & (1 << i)) != 0)
+                    {
+                        SetValueToCell((byte)(1 << i), j, y, z);
+                    }
+                }
+            }
+        }
+
+        counts.Clear();
+
+        for (int i = 0; i < N; i++) ProbCount(x, i, z, counts);
+
+        for (int i = 0; i < N; i++)
+        {
+            if (counts[i] == 1)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    if ((Cube[x, j, z] & (1 << i)) != 0)
+                    {
+                        SetValueToCell((byte)(1 << i), x, j, z);
+                    }
+                }
+            }
+        }
+
+        counts.Clear();
+
+        for (int i = 0; i < N; i++) ProbCount(x, y, i, counts);
+
+        for (int i = 0; i < N; i++)
+        {
+            if (counts[i] == 1)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    if ((Cube[x, y, j] & (1 << i)) != 0)
+                    {
+                        SetValueToCell((byte)(1 << i), x, y, j);
+                    }
+                }
+            }
+        }
+
+        counts.Clear();
+
+        for (int i = x / 2 * 2; i < (x + 2) / 2 * 2; i++)
+        for (int j = y / 2 * 2; j < (y + 2) / 2 * 2; j++)
+        for (int k = z / 2 * 2; k < (z + 2) / 2 * 2; k++)
+        {
+            ProbCount(i, j, k, counts);
+        }
+
+        for (int ind = 0; ind < N; ind++)
+        {
+            if (counts[ind] == 1)
+            {
+                for (int i = x / 2 * 2; i < (x + 2) / 2 * 2; i++)
+                for (int j = y / 2 * 2; j < (y + 2) / 2 * 2; j++)
+                for (int k = z / 2 * 2; k < (z + 2) / 2 * 2; k++)
+                {
+                    if ((Cube[i, j, k] & (1 << ind)) != 0)
+                    {
+                        SetValueToCell((byte)(1 << ind), i, j, k);
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void ProbCount(int x0, int y0, int z0, Span<int> countsSpan)
+    {
+        byte cell = Cube[x0, y0, z0];
+        int cnt = BitOperations.PopCount(cell);
+        if (cnt > 1)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                if ((cell & (1 << j)) != 0)
+                {
+                    countsSpan[j]++;
+                }
             }
         }
     }
