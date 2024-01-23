@@ -3,6 +3,42 @@ using System.Numerics;
 using Terminal.Gui;
 
 namespace CubeConsole;
+
+public class CubeStack
+{
+
+    private int _size = 0;
+    private List<byte[,,]> _stack = new ();
+
+    public void Push(byte[,,] cube)
+    {
+        _size++;
+        if (_size > _stack.Count)
+        {
+            byte[,,] b = (byte[,,]) cube.Clone();
+            _stack.Add(b);
+        }
+        else
+        {
+            Array.Copy(cube, _stack[_size-1], cube.Length);
+        }
+    }
+
+    public void Pop(byte[,,] cube)
+    {
+        if (_size > 0)
+        {
+            Array.Copy(_stack[_size - 1], cube, cube.Length);
+            _size--;
+        }
+        else
+        {
+            throw new Exception("Pop without push!");
+        }
+    }
+}
+
+
 public class CubeWindow:Window
 {
 
@@ -68,7 +104,7 @@ public class CubeWindow:Window
             }
         }
 
-     
+        CubeStack cubeStack = new CubeStack();
 
 
         _frontSlice = new SliceView(N, "Front");
@@ -103,9 +139,10 @@ public class CubeWindow:Window
         Add(_possibilityLabel);
 
 
+
+        TryRecursiveSolver(cubeStack, 0, 0, 0);
         Span<int> indices = stackalloc int[8];
-        byte[,,] cubeCopy = new byte[8, 8, 8];
-        for (int i = 0; i < 10000; i++)
+        for (int i = 0; i < 0; i++)
         {
             int x = Random.Shared.Next(8);
             int y = Random.Shared.Next(8);
@@ -123,22 +160,22 @@ public class CubeWindow:Window
                     }
                 }
 
-                Array.Copy(Cube, cubeCopy, Cube.Length);
+                bool isGood = false;
+                cubeStack.Push(Cube);
                 for (int k = 0; k < index; k++)
                 {
                     if (TrySetValueToCell((byte)(1 << indices[k]), x, y, z))
                     {
+                        
                         break;
                     }
-                    else
-                    {
-                        Array.Copy(cubeCopy, Cube, Cube.Length);
-                    }
+
+                    cubeStack.Pop(Cube);
                 }
 
-                if (IsCubeHaveZero())
+                if (!isGood)
                 {
-                    Debug.WriteLine("Error!");
+
                 }
 
             }
@@ -183,6 +220,76 @@ public class CubeWindow:Window
                     break;
             }
         };
+    }
+
+    private int count = 0;
+
+    private bool TryRecursiveSolver(CubeStack stack, int x, int y, int z)
+    {
+        
+        bool NextValue()
+        {
+            z++;
+            if (z == 8)
+            {
+                z = 0;
+                y++;
+                if (y == 8)
+                {
+                    y = 0;
+                    x++;
+                    if (x == 8)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        byte value = Cube[x, y, z];
+        
+        while (BitOperations.PopCount(value) <= 1)
+        {
+            if (!NextValue())
+                return false;
+            value = Cube[x, y, z];
+        }
+        
+        Span<int> indices = stackalloc int[8];
+        int index = 0;
+        for (int j = 0; j < 8; j++)
+        {
+            if ((value & (1 << j)) > 0)
+            {
+                indices[index] = j;
+                index++;
+            }
+        }
+
+        bool isGood = false;
+        stack.Push(Cube);
+        for (int k = 0; k < index; k++)
+        {
+            if (TrySetValueToCell((byte)(1 << indices[k]), x, y, z))
+            {
+                if (!NextValue()) return false;
+                if (!TryRecursiveSolver(stack, x, y, z)) return false;
+                isGood = true;
+                break;
+            }
+
+            stack.Pop(Cube);
+        }
+
+        if (!isGood)
+        {
+            count++;
+            stack.Pop(Cube);
+        }
+    
+        return true;
     }
 
     private bool IsCubeHaveZero()
