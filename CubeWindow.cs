@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Terminal.Gui;
 
 namespace CubeConsole;
@@ -102,8 +103,9 @@ public class CubeWindow:Window
         Add(_possibilityLabel);
 
 
-        Span<int> indicies = stackalloc int[8];
-        for (int i = 0; i < 120; i++)
+        Span<int> indices = stackalloc int[8];
+        byte[,,] cubeCopy = new byte[8, 8, 8];
+        for (int i = 0; i < 10000; i++)
         {
             int x = Random.Shared.Next(8);
             int y = Random.Shared.Next(8);
@@ -116,12 +118,29 @@ public class CubeWindow:Window
                 {
                     if ((value & (1 << j)) > 0)
                     {
-                        indicies[index] = j;
+                        indices[index] = j;
                         index++;
                     }
                 }
-                
-                SetValueToCell((byte)(1 << indicies[0]), x, y, z);
+
+                Array.Copy(Cube, cubeCopy, Cube.Length);
+                for (int k = 0; k < index; k++)
+                {
+                    if (TrySetValueToCell((byte)(1 << indices[k]), x, y, z))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Array.Copy(cubeCopy, Cube, Cube.Length);
+                    }
+                }
+
+                if (IsCubeHaveZero())
+                {
+                    Debug.WriteLine("Error!");
+                }
+
             }
         }
 
@@ -166,31 +185,44 @@ public class CubeWindow:Window
         };
     }
 
+    private bool IsCubeHaveZero()
+    {
+        for (int i = 0; i < 8; i++)
+        for (int k = 0; k < 8; k++)
+        for (int j = 0; j < 8; j++)
+        {
+            if (Cube[i, j, k] == 0) 
+                return true;
+        }
+        return false;
+    }
+
     public void SetValueToSelectedCell(byte value)
     {
         var (x, y, z) = (Selected.x, Selected.y, Selected.z);
-        SetValueToCell(value, x, y, z);
+        TrySetValueToCell(value, x, y, z);
         OnSelectedChange();
     }
 
-    private void SetValueToCell(byte value, int x, int y, int z)
+    private bool TrySetValueToCell(byte value, int x, int y, int z)
     {
         Cube[x, y, z] = value;
         for (int i = 0; i < N; i++)
         {
             if (i != x)
             {
-                RemoveProbability(value, i, y, z);
+
+                if (!TryRemoveProbability(value, i, y, z)) return false;
             }
 
             if (i != y)
             {
-                RemoveProbability(value, x, i, z);
+                if (!TryRemoveProbability(value, x, i, z)) return false;
             }
 
             if (i != z)
             {
-                RemoveProbability(value, x, y, i);
+                if (!TryRemoveProbability(value, x, y, i)) return false;
             }
         }
 
@@ -200,7 +232,7 @@ public class CubeWindow:Window
         {
             if (i != x || j != y || k != z)
             {
-                RemoveProbability(value, i, j, k);
+                if (!TryRemoveProbability(value, i, j, k)) return false;
             }
         }
 
@@ -216,7 +248,7 @@ public class CubeWindow:Window
                 {
                     if ((Cube[j, y, z] & (1 << i)) != 0)
                     {
-                        SetValueToCell((byte)(1 << i), j, y, z);
+                        if (!TrySetValueToCell((byte)(1 << i), j, y, z)) return false;
                     }
                 }
             }
@@ -234,7 +266,7 @@ public class CubeWindow:Window
                 {
                     if ((Cube[x, j, z] & (1 << i)) != 0)
                     {
-                        SetValueToCell((byte)(1 << i), x, j, z);
+                        if (!TrySetValueToCell((byte)(1 << i), x, j, z)) return false;
                     }
                 }
             }
@@ -252,7 +284,7 @@ public class CubeWindow:Window
                 {
                     if ((Cube[x, y, j] & (1 << i)) != 0)
                     {
-                        SetValueToCell((byte)(1 << i), x, y, j);
+                        if (!TrySetValueToCell((byte)(1 << i), x, y, j)) return false;
                     }
                 }
             }
@@ -277,12 +309,13 @@ public class CubeWindow:Window
                 {
                     if ((Cube[i, j, k] & (1 << ind)) != 0)
                     {
-                        SetValueToCell((byte)(1 << ind), i, j, k);
+                        if (!TrySetValueToCell((byte)(1 << ind), i, j, k)) return false;
                     }
                 }
             }
         }
 
+        return true;
     }
 
     private void ProbCount(int x0, int y0, int z0, Span<int> countsSpan)
@@ -301,16 +334,24 @@ public class CubeWindow:Window
         }
     }
 
-    private void RemoveProbability(byte value, int x, int y, int z)
+    private bool TryRemoveProbability(byte value, int x, int y, int z)
     {
         byte cellValue = Cube[x, y, z];
         int cnt = BitOperations.PopCount(cellValue);
         cellValue &= (byte)~value;
         int newCnt = BitOperations.PopCount(cellValue);
         Cube[x, y, z] = cellValue;
-        if (cnt == 2 && newCnt == 1)
+
+        if (cellValue != 0)
         {
-            SetValueToCell(cellValue, x, y, z);
+            if (cnt == 2 && newCnt == 1)
+            {
+                if (!TrySetValueToCell(cellValue, x, y, z)) return false;
+            }
+
+            return true;
         }
+
+        return false;
     }
 }
