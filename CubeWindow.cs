@@ -140,7 +140,7 @@ public class CubeWindow:Window
 
 
 
-        TryRecursiveSolver(cubeStack, 0, 0, 0);
+        //TryRecursiveSolver(cubeStack, 0, 0, 0);
         Span<int> indices = stackalloc int[8];
         for (int i = 0; i < 0; i++)
         {
@@ -269,24 +269,21 @@ public class CubeWindow:Window
         }
 
         bool isGood = false;
-        stack.Push(Cube);
+        Random.Shared.Shuffle(indices.Slice(0,index));
         for (int k = 0; k < index; k++)
         {
+            stack.Push(Cube);
             if (TrySetValueToCell((byte)(1 << indices[k]), x, y, z))
             {
-                if (!NextValue()) return false;
-                if (!TryRecursiveSolver(stack, x, y, z)) return false;
-                isGood = true;
-                break;
+                if (!TryRecursiveSolver(stack, x, y, z)) 
+                    return false;
             }
-
             stack.Pop(Cube);
         }
 
         if (!isGood)
         {
             count++;
-            stack.Pop(Cube);
         }
     
         return true;
@@ -343,9 +340,20 @@ public class CubeWindow:Window
             }
         }
 
-        Span<int> counts = stackalloc int[N]; 
-        
+        Span<int> counts = stackalloc int[N];
+
+        bool CountsCheck(Span<int> counts)
+        {
+            for (int i = 0; i < N; i++)
+                if (counts[i] < 1)
+                    return false;
+
+            return true;
+        }
+
         for (int i = 0; i < N; i++) ProbCount(i, y, z, counts);
+        if (!CountsCheck(counts)) return false;
+
 
         for (int i = 0; i < N; i++)
         {
@@ -353,7 +361,7 @@ public class CubeWindow:Window
             {
                 for (int j = 0; j < N; j++)
                 {
-                    if ((Cube[j, y, z] & (1 << i)) != 0)
+                    if (BitOperations.PopCount(Cube[j, y, z]) > 1 && (Cube[j, y, z] & (1 << i)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << i), j, y, z)) return false;
                     }
@@ -364,6 +372,7 @@ public class CubeWindow:Window
         counts.Clear();
 
         for (int i = 0; i < N; i++) ProbCount(x, i, z, counts);
+        if (!CountsCheck(counts)) return false;
 
         for (int i = 0; i < N; i++)
         {
@@ -371,7 +380,7 @@ public class CubeWindow:Window
             {
                 for (int j = 0; j < N; j++)
                 {
-                    if ((Cube[x, j, z] & (1 << i)) != 0)
+                    if (BitOperations.PopCount(Cube[x, j, z]) > 1 && (Cube[x, j, z] & (1 << i)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << i), x, j, z)) return false;
                     }
@@ -382,6 +391,7 @@ public class CubeWindow:Window
         counts.Clear();
 
         for (int i = 0; i < N; i++) ProbCount(x, y, i, counts);
+        if (!CountsCheck(counts)) return false;
 
         for (int i = 0; i < N; i++)
         {
@@ -389,7 +399,7 @@ public class CubeWindow:Window
             {
                 for (int j = 0; j < N; j++)
                 {
-                    if ((Cube[x, y, j] & (1 << i)) != 0)
+                    if (BitOperations.PopCount(Cube[x, y, j]) > 1 && (Cube[x, y, j] & (1 << i)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << i), x, y, j)) return false;
                     }
@@ -406,6 +416,8 @@ public class CubeWindow:Window
             ProbCount(i, j, k, counts);
         }
 
+        if (!CountsCheck(counts)) return false;
+
         for (int ind = 0; ind < N; ind++)
         {
             if (counts[ind] == 1)
@@ -414,7 +426,7 @@ public class CubeWindow:Window
                 for (int j = y / 2 * 2; j < (y + 2) / 2 * 2; j++)
                 for (int k = z / 2 * 2; k < (z + 2) / 2 * 2; k++)
                 {
-                    if ((Cube[i, j, k] & (1 << ind)) != 0)
+                    if (BitOperations.PopCount(Cube[i, j, k]) > 1 && (Cube[i, j, k] & (1 << ind)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << ind), i, j, k)) return false;
                     }
@@ -429,14 +441,11 @@ public class CubeWindow:Window
     {
         byte cell = Cube[x0, y0, z0];
         int cnt = BitOperations.PopCount(cell);
-        if (cnt > 1)
+        for (int j = 0; j < N; j++)
         {
-            for (int j = 0; j < N; j++)
+            if ((cell & (1 << j)) != 0)
             {
-                if ((cell & (1 << j)) != 0)
-                {
-                    countsSpan[j]++;
-                }
+                countsSpan[j]++;
             }
         }
     }
