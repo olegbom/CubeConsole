@@ -137,49 +137,8 @@ public class CubeWindow:Window
         };
         Add(_possibilityLabel);
 
-
-
-        TryRecursiveSolver(cubeStack, 0, 0, 0);
-        Span<int> indices = stackalloc int[8];
-        for (int i = 0; i < 0; i++)
-        {
-            int x = Random.Shared.Next(8);
-            int y = Random.Shared.Next(8);
-            int z = Random.Shared.Next(8);
-            byte value = Cube[x, y, z];
-            if (BitOperations.PopCount((uint)value) > 1)
-            {
-                int index = 0;
-                for (int j = 0; j < 8; j++)
-                {
-                    if ((value & (1 << j)) > 0)
-                    {
-                        indices[index] = j;
-                        index++;
-                    }
-                }
-
-                bool isGood = false;
-                cubeStack.Push(Cube);
-                for (int k = 0; k < index; k++)
-                {
-                    if (TrySetValueToCell((byte)(1 << indices[k]), x, y, z))
-                    {
-                        
-                        break;
-                    }
-
-                    cubeStack.Pop(Cube);
-                }
-
-                if (!isGood)
-                {
-
-                }
-
-            }
-        }
-
+        TryRecursiveSolver(cubeStack, 3, 5, 0);
+        
         OnSelectedChange();
 
         KeyPress += args =>
