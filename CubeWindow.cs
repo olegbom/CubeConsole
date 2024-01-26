@@ -9,8 +9,8 @@ public class CubeWindow:Window
 
     public readonly int N = 8;
 
-    private byte[,,] Cube;
-
+    private readonly byte[,,] _cube;
+    
     private readonly SliceView _frontSlice;
 
     private readonly SliceView _topSlice;
@@ -35,19 +35,19 @@ public class CubeWindow:Window
 
     public void OnSelectedChange()
     {
-        _frontSlice.SetSlice(Cube, _selected.z, SliceDirection.Front);
+        _frontSlice.SetSlice(_cube, _selected.z, SliceDirection.Front);
         _frontSlice.SetCross(_selected.x, _selected.y);
         _frontSlice.SetCursor(_selected.x, _selected.y);
         
-        _topSlice.SetSlice(Cube, _selected.y, SliceDirection.Top);
+        _topSlice.SetSlice(_cube, _selected.y, SliceDirection.Top);
         _topSlice.SetCross(_selected.x, N - _selected.z - 1);
         _topSlice.SetCursor(_selected.x, N - _selected.z - 1);
         
-        _leftSlice.SetSlice(Cube, _selected.x, SliceDirection.Left);
+        _leftSlice.SetSlice(_cube, _selected.x, SliceDirection.Left);
         _leftSlice.SetCross(N - _selected.z - 1, _selected.y);
         _leftSlice.SetCursor(N - _selected.z - 1, _selected.y);
         
-        _possibilityLabel.Text = LatinCube.ToPossibility(Cube[_selected.x, _selected.y, _selected.z]);
+        _possibilityLabel.Text = LatinCube.ToPossibility(_cube[_selected.x, _selected.y, _selected.z]);
     }
 
 
@@ -55,7 +55,7 @@ public class CubeWindow:Window
     {
         Title = "CubeConsole (Ctrl+Q to quit)";
 
-        Cube = new byte[N, N, N];
+        _cube = new byte[N, N, N];
 
         for (int i = 0; i < N; i++)
         {
@@ -63,7 +63,7 @@ public class CubeWindow:Window
             {
                 for (int k = 0; k < N; k++)
                 {
-                    Cube[i, j, k] = 0xFF;
+                    _cube[i, j, k] = 0xFF;
                 }
             }
         }
@@ -74,19 +74,19 @@ public class CubeWindow:Window
         _frontSlice = new SliceView(N, "Front");
         _frontSlice.X = 2;
         _frontSlice.Y = 1;
-        _frontSlice.SetSlice(Cube, 0, SliceDirection.Front);
+        _frontSlice.SetSlice(_cube, 0, SliceDirection.Front);
         Add(_frontSlice);
 
         _topSlice = new SliceView(N, "Top");
         _topSlice.X = 2;
         _topSlice.Y = Pos.Bottom(_frontSlice);
-        _topSlice.SetSlice(Cube, 0, SliceDirection.Top);
+        _topSlice.SetSlice(_cube, 0, SliceDirection.Top);
         Add(_topSlice);
 
         _leftSlice = new SliceView(N, "Left");
         _leftSlice.X = Pos.Right(_topSlice) + 1;
         _leftSlice.Y = 1;
-        _leftSlice.SetSlice(Cube, 0, SliceDirection.Left);
+        _leftSlice.SetSlice(_cube, 0, SliceDirection.Left);
         Add(_leftSlice);
 
         _possibilityLabel = new Label()
@@ -171,13 +171,13 @@ public class CubeWindow:Window
             return true;
         }
 
-        byte value = Cube[x, y, z];
+        byte value = _cube[x, y, z];
         
         while (BitOperations.PopCount(value) <= 1)
         {
             if (!NextValue())
                 return false;
-            value = Cube[x, y, z];
+            value = _cube[x, y, z];
         }
         
         Span<int> indices = stackalloc int[8];
@@ -195,13 +195,13 @@ public class CubeWindow:Window
         Random.Shared.Shuffle(indices.Slice(0,index));
         for (int k = 0; k < index; k++)
         {
-            stack.Push(Cube);
+            stack.Push(_cube);
             if (TrySetValueToCell((byte)(1 << indices[k]), x, y, z))
             {
                 if (!TryRecursiveSolver(stack, x, y, z)) 
                     return false;
             }
-            stack.Pop(Cube);
+            stack.Pop(_cube);
         }
 
         if (!isGood)
@@ -218,7 +218,7 @@ public class CubeWindow:Window
         for (int k = 0; k < 8; k++)
         for (int j = 0; j < 8; j++)
         {
-            if (Cube[i, j, k] == 0) 
+            if (_cube[i, j, k] == 0) 
                 return true;
         }
         return false;
@@ -233,7 +233,7 @@ public class CubeWindow:Window
 
     private bool TrySetValueToCell(byte value, int x, int y, int z)
     {
-        Cube[x, y, z] = value;
+        _cube[x, y, z] = value;
         for (int i = 0; i < N; i++)
         {
             if (i != x)
@@ -284,7 +284,7 @@ public class CubeWindow:Window
             {
                 for (int j = 0; j < N; j++)
                 {
-                    if (BitOperations.PopCount(Cube[j, y, z]) > 1 && (Cube[j, y, z] & (1 << i)) != 0)
+                    if (BitOperations.PopCount(_cube[j, y, z]) > 1 && (_cube[j, y, z] & (1 << i)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << i), j, y, z)) return false;
                     }
@@ -303,7 +303,7 @@ public class CubeWindow:Window
             {
                 for (int j = 0; j < N; j++)
                 {
-                    if (BitOperations.PopCount(Cube[x, j, z]) > 1 && (Cube[x, j, z] & (1 << i)) != 0)
+                    if (BitOperations.PopCount(_cube[x, j, z]) > 1 && (_cube[x, j, z] & (1 << i)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << i), x, j, z)) return false;
                     }
@@ -322,7 +322,7 @@ public class CubeWindow:Window
             {
                 for (int j = 0; j < N; j++)
                 {
-                    if (BitOperations.PopCount(Cube[x, y, j]) > 1 && (Cube[x, y, j] & (1 << i)) != 0)
+                    if (BitOperations.PopCount(_cube[x, y, j]) > 1 && (_cube[x, y, j] & (1 << i)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << i), x, y, j)) return false;
                     }
@@ -349,7 +349,7 @@ public class CubeWindow:Window
                 for (int j = y / 2 * 2; j < (y + 2) / 2 * 2; j++)
                 for (int k = z / 2 * 2; k < (z + 2) / 2 * 2; k++)
                 {
-                    if (BitOperations.PopCount(Cube[i, j, k]) > 1 && (Cube[i, j, k] & (1 << ind)) != 0)
+                    if (BitOperations.PopCount(_cube[i, j, k]) > 1 && (_cube[i, j, k] & (1 << ind)) != 0)
                     {
                         if (!TrySetValueToCell((byte)(1 << ind), i, j, k)) return false;
                     }
@@ -362,7 +362,7 @@ public class CubeWindow:Window
 
     private void ProbCount(int x0, int y0, int z0, Span<int> countsSpan)
     {
-        byte cell = Cube[x0, y0, z0];
+        byte cell = _cube[x0, y0, z0];
         int cnt = BitOperations.PopCount(cell);
         for (int j = 0; j < N; j++)
         {
@@ -375,11 +375,11 @@ public class CubeWindow:Window
 
     private bool TryRemoveProbability(byte value, int x, int y, int z)
     {
-        byte cellValue = Cube[x, y, z];
+        byte cellValue = _cube[x, y, z];
         int cnt = BitOperations.PopCount(cellValue);
         cellValue &= (byte)~value;
         int newCnt = BitOperations.PopCount(cellValue);
-        Cube[x, y, z] = cellValue;
+        _cube[x, y, z] = cellValue;
 
         if (cellValue != 0)
         {
