@@ -102,7 +102,7 @@ public class CubeWindow:Window
         };
         Add(_possibilityLabel);
 
-        TryRecursiveSolver(cubeStack, 3, 5, 0);
+        TryRecursiveSolver(cubeStack, 4, 0, 0);
         
         OnSelectedChange();
 
