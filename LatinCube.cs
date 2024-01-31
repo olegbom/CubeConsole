@@ -5,6 +5,19 @@ namespace CubeConsole;
 
 public static class LatinCube
 {
+
+    public static void SwapSlices(byte[,,] cube, int dimension, int ia, int ib)
+    {
+        if (dimension > 2)
+            return;
+        
+        int size = cube.GetLength(dimension);
+        if (ia >= size || ib >= size)
+            return;
+        
+        
+    }
+
     public static string ToIndicator(byte v)
     {
         int count = BitOperations.PopCount(v);

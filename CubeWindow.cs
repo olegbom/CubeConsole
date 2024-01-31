@@ -69,8 +69,7 @@ public class CubeWindow:Window
         }
 
         CubeStack cubeStack = new CubeStack();
-
-
+        
         _frontSlice = new SliceView(N, "Front");
         _frontSlice.X = 2;
         _frontSlice.Y = 1;
@@ -102,8 +101,9 @@ public class CubeWindow:Window
         };
         Add(_possibilityLabel);
 
-        TryRecursiveSolver(cubeStack, 4, 0, 0);
-        
+        TryRecursiveSolver(cubeStack, 0, 0, 0);
+        Debug.WriteLine($"Number of misses: {numberOfMisses}");
+
         OnSelectedChange();
 
         KeyPress += args =>
@@ -145,7 +145,7 @@ public class CubeWindow:Window
         };
     }
 
-    private int count = 0;
+    private int numberOfMisses = 0;
 
     private bool TryRecursiveSolver(CubeStack stack, int x, int y, int z)
     {
@@ -191,8 +191,7 @@ public class CubeWindow:Window
             }
         }
 
-        bool isGood = false;
-        Random.Shared.Shuffle(indices.Slice(0,index));
+        //Random.Shared.Shuffle(indices.Slice(0,index));
         for (int k = 0; k < index; k++)
         {
             stack.Push(_cube);
@@ -200,15 +199,11 @@ public class CubeWindow:Window
             {
                 if (!TryRecursiveSolver(stack, x, y, z)) 
                     return false;
+                numberOfMisses++;
             }
             stack.Pop(_cube);
         }
-
-        if (!isGood)
-        {
-            count++;
-        }
-    
+   
         return true;
     }
 
@@ -363,7 +358,6 @@ public class CubeWindow:Window
     private void ProbCount(int x0, int y0, int z0, Span<int> countsSpan)
     {
         byte cell = _cube[x0, y0, z0];
-        int cnt = BitOperations.PopCount(cell);
         for (int j = 0; j < N; j++)
         {
             if ((cell & (1 << j)) != 0)
