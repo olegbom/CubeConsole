@@ -6,17 +6,53 @@ namespace CubeConsole;
 public static class LatinCube
 {
 
-    public static void SwapSlices(byte[,,] cube, int dimension, int ia, int ib)
+    public static void SwapSlices(byte[,,] cube, int dimension, int a, int b)
     {
-        if (dimension > 2)
-            return;
-        
-        int size = cube.GetLength(dimension);
-        if (ia >= size || ib >= size)
-            return;
-        
-        
+        switch (dimension)
+        {
+            case 0: 
+                SwapSlicesX(cube, a, b);
+                break;
+            case 1:
+                SwapSlicesY(cube, a, b);
+                break;
+            case 2:
+                SwapSlicesZ(cube, a, b);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(dimension));
+        }
     }
+
+    public static void SwapSlicesX(byte[,,] cube, int a, int b)
+    {
+        for (int i = 0; i < cube.GetLength(1); i++)
+        for (int j = 0; j < cube.GetLength(2); j++)
+        {
+            (cube[a, i, j], cube[b, i, j]) = (cube[b, i, j], cube[a, i, j]);
+        }
+    }
+
+    public static void SwapSlicesY(byte[,,] cube, int a, int b)
+    {
+        for (int i = 0; i < cube.GetLength(0); i++)
+        for (int j = 0; j < cube.GetLength(2); j++)
+        {
+            (cube[i, a, j], cube[i, b, j]) = (cube[i, b, j], cube[i, a, j]);
+        }
+    }
+
+    public static void SwapSlicesZ(byte[,,] cube, int a, int b)
+    {
+        for (int i = 0; i < cube.GetLength(0); i++)
+        for (int j = 0; j < cube.GetLength(1); j++)
+        {
+            (cube[i, j, a], cube[i, j, b]) = (cube[i, j, b], cube[i, j, a]);
+        }
+    }
+
+
+
 
     public static string ToIndicator(byte v)
     {

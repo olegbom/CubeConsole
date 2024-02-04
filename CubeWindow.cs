@@ -103,7 +103,7 @@ public class CubeWindow:Window
 
         TryRecursiveSolver(cubeStack, 0, 0, 0);
         Debug.WriteLine($"Number of misses: {numberOfMisses}");
-
+        LatinCube.SwapSlices(_cube, 2, 0, 1);
         OnSelectedChange();
 
         KeyPress += args =>
